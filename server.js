@@ -39,6 +39,95 @@ const HAS_KEY     = Boolean(TMDB_TOKEN || TMDB_KEY);
 const CACHE_TTL   = Number(process.env.TMDB_CACHE_MS || 5 * 60 * 1000);
 const ROOT        = __dirname;
 
+/* ---------- locate the folder that actually holds index.html ----------
+   Works whether the pages sit next to server.js (normal repo layout) or one
+   level deeper (clip/, public/, site/, dist/, www/, app/) — which is exactly
+   what happens when a project is uploaded as a zip. Without this, every page
+   returned {"error":"NOT_FOUND","path":"/index.html"}. */
+function findSiteRoot(base){
+  const hasIndex = dir => {
+    try { return fs.existsSync(path.join(dir, 'index.html')); } catch(e){ return false; }
+  };
+  if(hasIndex(base)) return base;
+
+  const named = ['clip', 'public', 'site', 'dist', 'www', 'app', 'src'];
+  for(const n of named){
+    const dir = path.join(base, n);
+    if(hasIndex(dir)) return dir;
+  }
+  try{
+    const skip = /^(node_modules|\.git|\.vercel|uploads|qa|tools|api|assets|images|img)$/i;
+    const subs = fs.readdirSync(base, { withFileTypes: true })
+      .filter(e => e.isDirectory() && !skip.test(e.name))
+      .map(e => e.name);
+    for(const name of subs) if(hasIndex(path.join(base, name))) return path.join(base, name);
+  }catch(e){}
+
+  /* also look UPWARDS — some hosts start the server from a nested folder */
+  let dir = base;
+  for(let up = 0; up < 3; up++){
+    const parent = path.dirname(dir);
+    if(!parent || parent === dir) break;
+    dir = parent;
+    if(hasIndex(dir)) return dir;
+    for(const n of named){
+      const sub = path.join(dir, n);
+      if(sub !== base && hasIndex(sub)) return sub;
+    }
+  }
+  return base;
+}
+const SITE_ROOT = findSiteRoot(ROOT);
+
+/* page-name -> file check, used by /health and the boot log */
+const CORE_FILES = ['index.html','movies.html','series.html','platform.html','detail.html','watch.html','mylist.html','404.html'];
+function missingPages(){
+  return CORE_FILES.filter(f => {
+    try { return !fs.existsSync(path.join(SITE_ROOT, f)); } catch(e){ return true; }
+  });
+}
+
+/* ---------- when the pages are not on this machine at all ---------- */
+function siteMissingPage(){
+  const missing = missingPages();
+  const root = SITE_ROOT.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+  return `<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CLIP — pages not found on this server</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{min-height:100vh;display:grid;place-items:center;padding:24px;background:#07070A;color:#fff;
+       font-family:system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.6}
+  .card{width:min(560px,100%);background:linear-gradient(170deg,#151519,#0B0B0E);
+        border:1px solid rgba(201,168,106,.28);border-radius:20px;padding:30px 26px;
+        box-shadow:0 30px 80px rgba(0,0,0,.7)}
+  .mark{width:52px;height:52px;border-radius:14px;display:grid;place-items:center;font-weight:900;font-size:24px;
+        color:#07070A;background:linear-gradient(135deg,#C9A86A,#E8C99A);margin-bottom:16px}
+  h1{font-size:20px;letter-spacing:-.4px;margin-bottom:8px}
+  p{color:#9A9AA2;font-size:13.5px;margin-bottom:14px}
+  code{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.09);border-radius:6px;
+       padding:2px 6px;font-size:12px;color:#E8C99A;word-break:break-all}
+  ul{margin:0 0 16px 18px;color:#9A9AA2;font-size:13px}
+  li{margin-bottom:7px}
+  .box{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);border-radius:10px;
+       padding:12px 14px;font-size:12px;color:#B4B4BC;margin-top:14px}
+  a{color:#E8C99A}
+</style></head><body>
+<div class="card">
+  <div class="mark">C</div>
+  <h1>Pages not found on this server</h1>
+  <p>The Node server is running, but <code>index.html</code> is not inside it:</p>
+  <p><code>${root}</code></p>
+  <ul>
+    <li>Push the HTML files to the repository root (index, movies, series, platform, detail, watch, mylist, 404)</li>
+    <li>On the host, leave <b>Root Directory</b> empty, then <b>Redeploy</b></li>
+    <li>Missing right now: <code>${missing.join(', ') || '—'}</code></li>
+  </ul>
+  <div class="box">Diagnostics: <a href="/health">/health</a> — shows the detected folder and the missing files.</div>
+</div>
+</body></html>`;
+}
+
 /* ---------- small in-memory cache ---------- */
 const cache = new Map(); // key -> { at, status, body, ctype }
 function cacheGet(k){
@@ -189,16 +278,29 @@ function serveStatic(req, res){
   if(pathname === '/my-list' || pathname === '/mylist') pathname = '/mylist.html';
   /* clean URLs (vercel.json cleanUrls) — /movies -> movies.html, /platform?p=netflix */
   if(!path.extname(pathname)){
-    const clean = path.join(ROOT, path.normalize(pathname + '.html').replace(/^(\.\.[/\\])+/, ''));
-    try { if(clean.startsWith(ROOT) && fs.existsSync(clean)) pathname += '.html'; } catch(e){}
+    const clean = path.join(SITE_ROOT, path.normalize(pathname + '.html').replace(/^(\.\.[/\\])+/, ''));
+    try { if(clean.startsWith(SITE_ROOT) && fs.existsSync(clean)) pathname += '.html'; } catch(e){}
   }
 
-  const filePath = path.join(ROOT, path.normalize(pathname).replace(/^(\.\.[/\\])+/, ''));
-  if(!filePath.startsWith(ROOT)) return json(res, 403, { error:'FORBIDDEN' });
+  const filePath = path.join(SITE_ROOT, path.normalize(pathname).replace(/^(\.\.[/\\])+/, ''));
+  if(!filePath.startsWith(SITE_ROOT)) return json(res, 403, { error:'FORBIDDEN' });
   if(isBlockedFile(filePath)) return json(res, 404, { error:'NOT_FOUND' });
 
   fs.stat(filePath, (err, st) => {
-    if(err || !st.isFile()) return json(res, 404, { error:'NOT_FOUND', path: pathname });
+    if(err || !st.isFile()){
+      const wantsHtml = /\.html?$/i.test(pathname) || !path.extname(pathname);
+      /* whole site missing? explain it in the browser instead of throwing JSON */
+      if(wantsHtml && !fs.existsSync(path.join(SITE_ROOT, 'index.html'))){
+        res.writeHead(503, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });
+        return res.end(siteMissingPage());
+      }
+      const fallback = path.join(SITE_ROOT, '404.html');
+      if(wantsHtml && fs.existsSync(fallback)){
+        res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache', 'X-Content-Type-Options': 'nosniff' });
+        return fs.createReadStream(fallback).pipe(res);
+      }
+      return json(res, 404, { error:'NOT_FOUND', path: pathname, siteRoot: path.basename(SITE_ROOT) });
+    }
     const ext = path.extname(filePath).toLowerCase();
     const type = MIME[ext] || 'application/octet-stream';
     res.writeHead(200, {
@@ -240,6 +342,20 @@ const server = http.createServer((req, res) => {
     return proxyTMDB(req, res);
   }
 
+  if(pathname === '/health' || pathname === '/api/health'){
+    const missing = missingPages();
+    return json(res, missing.length ? 503 : 200, {
+      ok: missing.length === 0,
+      runtime: 'node',
+      node: process.version,
+      siteRoot: SITE_ROOT,
+      indexFound: fs.existsSync(path.join(SITE_ROOT, 'index.html')),
+      pages: CORE_FILES.length,
+      missing,
+      tmdb: HAS_KEY
+    });
+  }
+
   if(pathname.startsWith('/api/')) return json(res, 404, { error:'NOT_FOUND' });
 
   serveStatic(req, res);
@@ -258,5 +374,8 @@ server.listen(PORT, HOST, () => {
   console.log(`  TMDB      : ${HAS_KEY ? '✓ connected (server-side, browser never sees the key)' : '✗ no key — add TMDB_TOKEN to .env'}`);
   console.log(`  Auth type : ${TMDB_TOKEN ? 'v4 Bearer token' : TMDB_KEY ? 'v3 api_key' : '—'}`);
   console.log(`  Proxy     : /api/tmdb/*  →  https://api.themoviedb.org/3/*`);
+  const _missing = missingPages();
+  console.log(`  Site root : ${SITE_ROOT}`);
+  console.log(`  Pages     : ${_missing.length ? '✗ missing ' + _missing.join(', ') : '✓ all ' + CORE_FILES.length + ' found'}`);
   console.log('');
 });
