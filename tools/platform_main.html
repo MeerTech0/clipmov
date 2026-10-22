@@ -1,0 +1,58 @@
+<main class="browse plat-page" id="browseRoot">
+  <section class="plat-hero" id="platHero">
+    <div class="plat-hero-row">
+      <div class="plat-logo" id="platLogo"></div>
+      <div class="plat-copy">
+        <div class="browse-kicker"><svg class="ic" style="font-size:10px"><use href="#i-play"/></svg> <span id="platKicker">Platform hub</span></div>
+        <h1 class="browse-title" id="platTitle">CLIP</h1>
+        <p class="browse-sub" id="platSub">Loading the catalog…</p>
+        <div class="plat-tags" id="platTags"></div>
+      </div>
+      <div class="browse-stat">
+        <div class="bs"><small>Showing</small><b id="browseCount">—</b></div>
+        <div class="bs"><small>Pages</small><b id="browsePages">0</b></div>
+        <div class="bs"><small>Source</small><b id="browseSource" style="font-size:12px;line-height:2.1;color:#2ECC71">Demo</b></div>
+      </div>
+    </div>
+    <div class="plat-switch" id="platSwitch" aria-label="Switch platform"></div>
+  </section>
+
+  <div class="plat-controls">
+    <div class="ptype" id="ptypeTabs" role="tablist" aria-label="Content type">
+      <button class="ptype-btn on" data-type="movie" onclick="platType('movie')" role="tab" aria-selected="true">
+        <svg class="ic" style="font-size:12px"><use href="#i-layer"/></svg> Movies</button>
+      <button class="ptype-btn" data-type="tv" onclick="platType('tv')" role="tab" aria-selected="false">
+        <svg class="ic" style="font-size:12px"><use href="#i-tv"/></svg> Series</button>
+    </div>
+    <div class="browse-sort">
+      <svg class="ic" style="font-size:12px;color:var(--muted)"><use href="#i-globe"/></svg>
+      <select id="pRegion" onchange="platRegion(this.value)" aria-label="Country / region"></select>
+    </div>
+    <div class="browse-sort">
+      <svg class="ic" style="font-size:12px;color:var(--muted)"><use href="#i-layer"/></svg>
+      <select id="pSort" onchange="platSort(this.value)" aria-label="Sort titles">
+        <option value="popularity.desc">Most popular</option>
+        <option value="vote_average.desc">Top rated</option>
+        <option value="newest">Newest first</option>
+        <option value="title.asc">Title A–Z</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="gchips" id="genreChips"></div>
+
+  <div class="browse-meta">
+    <div class="browse-count" id="browseLine">Loading titles…</div>
+    <div class="browse-count" id="browseHint"></div>
+  </div>
+
+  <div class="browse-grid" id="browseGrid"></div>
+
+  <div class="browse-more" id="browseMore" style="display:none">
+    <button class="loadmore" id="loadMoreBtn" onclick="platNextPage()">
+      <svg class="ic" style="font-size:12px"><use href="#i-plus"/></svg> Load more
+    </button>
+  </div>
+  <div class="plat-note"><svg class="ic" style="font-size:11px"><use href="#i-info"/></svg>
+    Availability comes from TMDB watch providers (<span id="platRegionNote">US</span>) — catalogs change daily.</div>
+</main>

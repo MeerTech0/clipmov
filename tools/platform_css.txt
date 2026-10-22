@@ -1,0 +1,68 @@
+
+/* ==================== PLATFORM HUB PAGE ==================== */
+.plat-hero{position:relative;overflow:hidden;border-radius:24px;padding:26px 26px 18px;margin-bottom:18px;
+  border:1px solid rgba(255,255,255,0.075);
+  background:
+    radial-gradient(120% 190% at 4% -30%, rgba(var(--pa-rgb,201,168,106),0.42) 0%, transparent 52%),
+    radial-gradient(90% 140% at 100% 120%, rgba(0,0,0,0.55) 0%, transparent 58%),
+    linear-gradient(160deg, rgba(26,26,32,0.96), rgba(9,9,12,0.99));
+  box-shadow:0 26px 70px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)}
+.plat-hero::before{content:'';position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(105deg, transparent 38%, rgba(255,255,255,0.05) 50%, transparent 62%);
+  transform:translateX(-30%)}
+.plat-hero-row{position:relative;z-index:1;display:flex;align-items:center;gap:20px;flex-wrap:wrap}
+.plat-logo{width:84px;height:84px;border-radius:22px;display:grid;place-items:center;flex:0 0 auto;
+  background:linear-gradient(150deg, rgba(255,255,255,0.13), rgba(255,255,255,0.025));
+  border:1px solid rgba(255,255,255,0.16);
+  box-shadow:0 18px 40px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.18)}
+.plat-logo .pmark{width:54px;height:54px;border-radius:15px;font-size:23px}
+.plat-logo .pmark svg{width:26px!important;height:26px!important}
+.plat-copy{flex:1 1 300px;min-width:0}
+.plat-copy .browse-sub{max-width:620px}
+.plat-tags{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.plat-tag{display:inline-flex;align-items:center;gap:6px;font-size:10px;font-weight:800;letter-spacing:.7px;
+  text-transform:uppercase;color:rgba(255,255,255,0.72);background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.1);padding:5px 10px;border-radius:99px}
+.plat-tag.live{color:#8DF5B4;border-color:rgba(46,204,113,0.4);background:rgba(46,204,113,0.1)}
+.plat-tag.demo{color:#FFD98A;border-color:rgba(245,197,24,0.35);background:rgba(245,197,24,0.09)}
+.plat-switch{position:relative;z-index:1;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;
+  margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08)}
+.plat-switch::-webkit-scrollbar{display:none}
+.psw{display:inline-flex;align-items:center;gap:8px;padding:5px 13px 5px 5px;border-radius:99px;cursor:pointer;
+  border:1px solid rgba(255,255,255,0.09);background:rgba(255,255,255,0.04);color:rgba(255,255,255,0.66);
+  font-family:inherit;font-size:11.5px;font-weight:800;white-space:nowrap;transition:.18s}
+.psw:hover{background:rgba(255,255,255,0.1);color:#fff;transform:translateY(-1px)}
+.psw.on{color:#07070A;background:linear-gradient(135deg,#F3E3C6,#D9BC85);border-color:transparent}
+.psw.on .pmark{box-shadow:0 0 0 1px rgba(7,7,10,0.18)}
+.plat-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:18px 0 4px;
+  padding:11px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.ptype{display:inline-flex;padding:3px;gap:3px;border-radius:99px;background:rgba(255,255,255,0.05);
+  border:1px solid var(--line);flex:0 0 auto}
+.ptype-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 17px;border-radius:99px;border:0;
+  background:transparent;color:rgba(255,255,255,0.66);font-family:inherit;font-size:11.5px;font-weight:800;
+  letter-spacing:.4px;cursor:pointer;transition:.18s;white-space:nowrap}
+.ptype-btn:hover{color:#fff;background:rgba(255,255,255,0.07)}
+.ptype-btn.on{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#07070A}
+.plat-page .gchips{margin:14px 0 2px;flex:initial}
+.plat-page .browse-grid{grid-template-columns:repeat(auto-fill,minmax(168px,1fr))}
+.plat-note{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--muted);margin-top:12px}
+@media(max-width:900px){
+  .plat-hero{padding:18px 16px 14px;border-radius:18px}
+  .plat-logo{width:62px;height:62px;border-radius:16px}
+  .plat-logo .pmark{width:40px;height:40px;border-radius:11px;font-size:18px}
+  .plat-logo .pmark svg{width:20px!important;height:20px!important}
+  .plat-hero-row{gap:14px}
+  .plat-copy .browse-title{font-size:clamp(26px,8.4vw,38px)}
+  .plat-copy .browse-sub{font-size:12px}
+  .plat-hero .browse-stat{order:3;width:100%}
+  .plat-hero .browse-stat .bs{flex:1;min-width:0;padding:8px 10px}
+  .plat-hero .browse-stat b{font-size:16px}
+  .plat-hero .browse-stat small{font-size:8px;letter-spacing:1px}
+  .plat-controls{gap:8px}
+  .ptype{width:100%}
+  .ptype-btn{flex:1;justify-content:center;padding:9px 10px}
+  .plat-controls .browse-sort{flex:1 1 46%}
+  .plat-controls .browse-sort select{width:100%;font-size:16px}
+  .plat-page .browse-grid{grid-template-columns:repeat(2,1fr)!important;gap:12px}
+  .psw{font-size:10.5px;padding:4px 10px 4px 4px}
+}
